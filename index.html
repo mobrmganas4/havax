@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أرشيف ألعاب أنس - تكسير الطوب</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- شاشة اختيار التطبيق / الأقسام -->
+    <div id="homeScreen" class="screen">
+        <div class="home-container">
+            <header class="home-header">
+                <img src="logo.png" alt="شعار الأرشيف" class="main-logo">
+                <h1>تطبيقات وألعاب أنس</h1>
+                <p>اختر اللعبة أو القسم للبدء بالاستمتاع والتحدي</p>
+            </header>
+
+            <div class="apps-grid">
+                <div class="app-card" onclick="openGameMenu()">
+                    <div class="app-icon-wrapper">
+                        <img src="logo.png" alt="تكسير الطوب" class="app-icon">
+                    </div>
+                    <h3>لعبة تكسير الطوب الملحمية</h3>
+                    <p>أقسام متعددة ومستويات سرعة مختلفة</p>
+                    <span class="app-badge">تشغيل</span>
+                </div>
+            </div>
+
+            <footer class="home-footer">
+                <p>تصميم وتطوير: أنس 🌟</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- شاشة اختيار مستويات الصعوبة -->
+    <div id="levelMenuScreen" class="screen hidden">
+        <div class="menu-container">
+            <h2>اختر مستوى الصعوبة والتحدي</h2>
+            <p>كل قسم له سرعة وتحدٍ فريد، اختر ما يناسب مهارتك:</p>
+            
+            <div class="difficulty-buttons">
+                <button class="diff-btn easy" onclick="startGame(1)">
+                    <span class="diff-title">القسم السهل</span>
+                    <span class="diff-desc">سرعة هادئة ومناسب للاسترخاء</span>
+                </button>
+                <button class="diff-btn medium" onclick="startGame(2)">
+                    <span class="diff-title">القسم المتوسط</span>
+                    <span class="diff-desc">سرعة متوسطة وتحدي متوازن</span>
+                </button>
+                <button class="diff-btn hard" onclick="startGame(3)">
+                    <span class="diff-title">القسم الصعب</span>
+                    <span class="diff-desc">سريع ومثير لردود الفعل السريعة</span>
+                </button>
+                <button class="diff-btn extreme" onclick="startGame(4)">
+                    <span class="diff-title">الصعب جداً (المستحيل)</span>
+                    <span class="diff-desc">فائق السرعة، للاعبين الأسطوريين فقط!</span>
+                </button>
+            </div>
+
+            <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
+        </div>
+    </div>
+
+    <!-- شاشة اللعبة الفعلية -->
+    <div id="gameScreen" class="screen hidden">
+        <div class="game-wrapper">
+            <header class="game-header">
+                <div class="logo-area">
+                    <img src="logo.png" alt="شعار اللعبة" class="game-logo" onclick="backToMenu()">
+                    <h1 id="currentModeTitle">تكسير الطوب</h1>
+                </div>
+                <div class="stats-panel">
+                    <div class="stat-box">النقاط: <span id="score">0</span></div>
+                    <div class="stat-box">الأرواح: <span id="lives">3</span></div>
+                </div>
+            </header>
+
+            <main class="canvas-container">
+                <canvas id="gameCanvas" width="600" height="400"></canvas>
+                <div id="messageOverlay" class="overlay hidden">
+                    <h2 id="overlayTitle">جاهز للبدء؟</h2>
+                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس للتحكم</p>
+                    <div class="overlay-buttons">
+                        <button id="startBtn">ابدأ التحدي</button>
+                        <button id="menuBtn" onclick="backToMenu()">القائمة الرئيسية</button>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="game-footer">
+                <button class="text-btn" onclick="backToMenu()">⬅ العودة لاختيار المستويات</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
