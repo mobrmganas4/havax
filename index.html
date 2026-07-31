@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تكسير الطوب الملحمية</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <header class="game-header">
+            <div class="logo-area">
+                <img src="logo.png" alt="شعار اللعبة" class="game-logo">
+                <h1>تكسير الطوب الملحمية</h1>
+            </div>
+            <div class="stats-panel">
+                <div class="stat-box">النقاط: <span id="score">0</span></div>
+                <div class="stat-box">الأرواح: <span id="lives">3</span></div>
+                <div class="stat-box">المستوى: <span id="level">1</span></div>
+            </div>
+        </header>
+
+        <main class="canvas-container">
+            <canvas id="gameCanvas" width="600" height="400"></canvas>
+            <div id="messageOverlay" class="overlay hidden">
+                <h2 id="overlayTitle">جاهز للبدء؟</h2>
+                <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس للتحكم</p>
+                <button id="startBtn">ابدأ اللعب</button>
+            </div>
+        </main>
+
+        <footer class="game-footer">
+            <p>تم تصميمها خصيصاً لتُرفع على GitHub وتعمل بدون أي مساحة تخزين!</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
