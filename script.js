@@ -1,7 +1,6 @@
 // --- كود الفحص الذكي لتحديثات الجيت هاب في التطبيق ---
 if (navigator.onLine) {
     console.log("متصل بالإنترنت، يتم التحقق من تحديثات الموقع...");
-    // هنا التطبيق يقدر يسحب أي تحديثات مستقبلية من رابط جيت هاب الخاص بك
     fetch('https://mobrmganas4.github.io/havax/')
         .then(response => {
             if (response.ok) {
@@ -28,16 +27,15 @@ const startBtn = document.getElementById("startBtn");
 
 let score = 0;
 let lives = 3;
-let currentDifficulty = 1; // 1: سهل, 2: متوسط, 3: صعب, 4: مستحيل
+let currentDifficulty = 1; 
 let gameRunning = false;
 let animationFrameId = null;
 
-// سرعات الكرة حسب القسم
 const speeds = {
-    1: { dx: 3, dy: -3 }, // سهل
-    2: { dx: 5, dy: -5 }, // متوسط
-    3: { dx: 7, dy: -7 }, // صعب
-    4: { dx: 10, dy: -10 } // مستحيل
+    1: { dx: 3, dy: -3 }, 
+    2: { dx: 5, dy: -5 }, 
+    3: { dx: 7, dy: -7 }, 
+    4: { dx: 10, dy: -10 } 
 };
 
 const modeNames = {
@@ -47,7 +45,6 @@ const modeNames = {
     4: "الصعب جداً (المستحيل)"
 };
 
-// الكرة والمضرب
 let x = canvas.width / 2;
 let y = canvas.height - 40;
 let dx = 3;
@@ -61,7 +58,6 @@ let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
 
-// وظائف التنقل بين الشاشات
 function openGameMenu() {
     homeScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
@@ -79,7 +75,6 @@ function backToMenu() {
     levelMenuScreen.classList.remove("hidden");
 }
 
-// التحكم بالحركة
 document.addEventListener("keydown", (e) => {
     if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
     else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
@@ -90,22 +85,33 @@ document.addEventListener("keyup", (e) => {
     else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
 });
 
+// دالة دقيقة جداً لحساب مكان الماوس أو اللمس على الـ Canvas مباشرة بغض النظر عن حجم الشاشة
+function getCanvasTouchPos(e) {
+    let rect = canvas.getBoundingClientRect();
+    let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    let scaleX = canvas.width / rect.width;
+    return (clientX - rect.left) * scaleX;
+}
+
 document.addEventListener("mousemove", (e) => {
-    let relativeX = e.clientX - canvas.getBoundingClientRect().left;
-    if (relativeX > 0 && relativeX < canvas.width) {
+    let relativeX = getCanvasTouchPos(e);
+    if (!isNaN(relativeX)) {
         paddleX = relativeX - paddleWidth / 2;
+        if (paddleX < 0) paddleX = 0;
+        if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
     }
 });
 
 canvas.addEventListener("touchmove", (e) => {
-    let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-    if (touchX > 0 && touchX < canvas.width) {
+    let touchX = getCanvasTouchPos(e);
+    if (!isNaN(touchX)) {
         paddleX = touchX - paddleWidth / 2;
+        if (paddleX < 0) paddleX = 0;
+        if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
     }
     e.preventDefault();
 }, { passive: false });
 
-// الطوب
 const brickRowCount = 5;
 const brickColumnCount = 7;
 const brickWidth = 72;
@@ -234,7 +240,6 @@ function draw() {
     drawPaddle();
     collisionDetection();
 
-    // حواف الجدران
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
         dx = -dx;
     }
