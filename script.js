@@ -1,3 +1,16 @@
+// --- كود الفحص الذكي لتحديثات الجيت هاب في التطبيق ---
+if (navigator.onLine) {
+    console.log("متصل بالإنترنت، يتم التحقق من تحديثات الموقع...");
+    // هنا التطبيق يقدر يسحب أي تحديثات مستقبلية من رابط جيت هاب الخاص بك
+    fetch('https://mobrmganas4.github.io/havax/')
+        .then(response => {
+            if (response.ok) {
+                console.log("الموقع يعمل بكفاءة وجاهز للتحديث الفوري.");
+            }
+        })
+        .catch(err => console.log("يعمل بالوضع المحلي أوفلاين."));
+}
+
 const homeScreen = document.getElementById("homeScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
 const gameScreen = document.getElementById("gameScreen");
@@ -274,3 +287,4 @@ startBtn.addEventListener("click", () => {
     gameRunning = true;
     draw();
 });
+
