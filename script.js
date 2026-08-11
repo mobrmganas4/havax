@@ -85,7 +85,7 @@ document.addEventListener("keyup", (e) => {
     else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
 });
 
-// دالة دقيقة جداً لحساب مكان الماوس أو اللمس على الـ Canvas مباشرة بغض النظر عن حجم الشاشة
+// دالة دقيقة جداً لتصحيح إحداثيات اللمس والماوس على الشاشات المختلفة
 function getCanvasTouchPos(e) {
     let rect = canvas.getBoundingClientRect();
     let clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -292,4 +292,3 @@ startBtn.addEventListener("click", () => {
     gameRunning = true;
     draw();
 });
-
