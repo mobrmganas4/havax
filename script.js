@@ -68,11 +68,16 @@ function backToHome() {
     homeScreen.classList.remove("hidden");
 }
 
+// تم تحديث الدالة لضمان إخفاء الـ Overlay وإعادة التعيين بشكل سليم
 function backToMenu() {
     gameRunning = false;
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    
     gameScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
+    
+    // إخفاء الـ Overlay وضمان عدم بقائه ظاهراً عند الدخول لمستوى جديد
+    overlay.classList.add("hidden");
 }
 
 document.addEventListener("keydown", (e) => {
@@ -85,11 +90,14 @@ document.addEventListener("keyup", (e) => {
     else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
 });
 
-// دالة دقيقة جداً لتصحيح إحداثيات اللمس والماوس على الشاشات المختلفة
+// دالة دقيقة لتصحيح إحداثيات اللمس والماوس بناءً على الحجم المعروض والحجم الحقيقي للـ Canvas
 function getCanvasTouchPos(e) {
     let rect = canvas.getBoundingClientRect();
     let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    
+    // حساب النسبة بين الحجم الحقيقي للـ canvas والحجم الذي يظهر على الشاشة
     let scaleX = canvas.width / rect.width;
+    
     return (clientX - rect.left) * scaleX;
 }
 
@@ -292,3 +300,4 @@ startBtn.addEventListener("click", () => {
     gameRunning = true;
     draw();
 });
+
