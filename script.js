@@ -1,3 +1,12 @@
+// --- منع سحب الشاشة للأسفل للتحديث نهائياً داخل التطبيق ---
+document.addEventListener('touchmove', function (e) {
+    if (e.scale !== 1) { return; }
+    if (e.target.closest('#gameCanvas')) {
+        return;
+    }
+    e.preventDefault();
+}, { passive: false });
+
 // --- كود الفحص الذكي لتحديثات الجيت هاب في التطبيق ---
 if (navigator.onLine) {
     console.log("متصل بالإنترنت، يتم التحقق من تحديثات الموقع...");
@@ -300,4 +309,3 @@ startBtn.addEventListener("click", () => {
     gameRunning = true;
     draw();
 });
-
