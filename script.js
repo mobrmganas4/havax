@@ -7,18 +7,6 @@ document.addEventListener('touchmove', function (e) {
     e.preventDefault();
 }, { passive: false });
 
-// --- كود الفحص الذكي لتحديثات الجيت هاب في التطبيق ---
-if (navigator.onLine) {
-    console.log("متصل بالإنترنت، يتم التحقق من تحديثات الموقع...");
-    fetch('https://mobrmganas4.github.io/havax/')
-        .then(response => {
-            if (response.ok) {
-                console.log("الموقع يعمل بكفاءة وجاهز للتحديث الفوري.");
-            }
-        })
-        .catch(err => console.log("يعمل بالوضع المحلي أوفلاين."));
-}
-
 const homeScreen = document.getElementById("homeScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
 const gameScreen = document.getElementById("gameScreen");
@@ -40,18 +28,24 @@ let currentDifficulty = 1;
 let gameRunning = false;
 let animationFrameId = null;
 
+// نظام تخزين المستويات المفتوحة في الـ Cache (LocalStorage)[span_1](start_span)[span_1](end_span)
+let unlockedLevel = localStorage.getItem('samball_unlocked') ? parseInt(localStorage.getItem('samball_unlocked')) : 1;
+
+// سرعات المستويات (المستوى الخامس أسرع بكثير وبشكل جنوني!)[span_2](start_span)[span_2](end_span)
 const speeds = {
     1: { dx: 3, dy: -3 }, 
     2: { dx: 5, dy: -5 }, 
     3: { dx: 7, dy: -7 }, 
-    4: { dx: 10, dy: -10 } 
+    4: { dx: 10, dy: -10 },
+    5: { dx: 16, dy: -16 } // سرعة خارقة ومستحيلة للمستوى الأخير[span_3](start_span)[span_3](end_span)
 };
 
 const modeNames = {
     1: "القسم السهل",
     2: "القسم المتوسط",
     3: "القسم الصعب",
-    4: "الصعب جداً (المستحيل)"
+    4: "الصعب جداً",
+    5: "المستوى المستحيل (اكسب 100$ 💵)"
 };
 
 let x = canvas.width / 2;
@@ -70,6 +64,7 @@ let leftPressed = false;
 function openGameMenu() {
     homeScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
+    updateLevelButtons();
 }
 
 function backToHome() {
@@ -77,15 +72,67 @@ function backToHome() {
     homeScreen.classList.remove("hidden");
 }
 
-// تم تحديث الدالة لضمان إخفاء الـ Overlay وإعادة التعيين بشكل سليم
+// تحديث واجهة أزرار المستويات (إظهار الأقفال للمستويات المغلقة)[span_4](start_span)[span_4](end_span)
+function updateLevelButtons() {
+    for (let i = 1; i <= 5; i++) {
+        let btn = document.getElementById(`btn-level-${i}`);
+        if (!btn) {
+            createLevelButtonInDom(i);
+            btn = document.getElementById(`btn-level-${i}`);
+        }
+        if (btn) {
+            if (i <= unlockedLevel) {
+                btn.classList.remove("locked");
+                let lockIcon = btn.querySelector(".lock-icon");
+                if (lockIcon) lockIcon.style.display = "none";
+            } else {
+                btn.classList.add("locked");
+            }
+        }
+    }
+}
+
+function createLevelButtonInDom(i) {
+    let container = document.querySelector(".difficulty-buttons");
+    if (!container) return;
+    if (document.getElementById(`btn-level-${i}`)) return;
+
+    let btn = document.createElement("button");
+    btn.className = `diff-btn ${i === 5 ? 'impossible' : (i === 4 ? 'extreme' : (i === 3 ? 'hard' : (i === 2 ? 'medium' : 'easy')))}`;
+    btn.id = `btn-level-${i}`;
+    btn.onclick = () => selectLevel(i);
+    
+    let titleText = i === 5 ? "المستوى المستحيل (اكسب 100$ 💵) <span class='lock-icon'>🔒</span>" : (i === 4 ? "الصعب جداً 🔴 <span class='lock-icon'>🔒</span>" : (i === 3 ? "القسم الصعب 🟠 <span class='lock-icon'>🔒</span>" : (i === 2 ? "القسم المتوسط 🟡 <span class='lock-icon'>🔒</span>" : "القسم السهل 🟢")));
+    let descText = i === 5 ? "صعب جنوني وسريع جداً! (مقلب الـ 100$ 😂)" : "تحدي جديد وسرعة أعلى";
+    
+    btn.innerHTML = `
+        <span class="diff-title">${titleText}</span>
+        <span class="diff-desc">${descText}</span>
+    `;
+    container.appendChild(btn);
+}
+
+function selectLevel(diff) {
+    if (diff > unlockedLevel) {
+        alert("🔒 هذا المستوى مقفل! يجب عليك إنهاء المستويات السابقة أولاً لتفتحه.");
+        return;
+    }
+
+    if (diff === 5) {
+        alert("⚠️ تحذير: هذا المستوى مستحيل بجنون والكرة تطير بسرعة البرق! إذا فزت (وده استحالة) هتاخد الـ 100$ (كذب طبعا 😂). بالتوفيق يا أسطورة!");
+    }
+
+    startGame(diff);
+}
+
 function backToMenu() {
     gameRunning = false;
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     
     gameScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
+    updateLevelButtons();
     
-    // إخفاء الـ Overlay وضمان عدم بقائه ظاهراً عند الدخول لمستوى جديد
     overlay.classList.add("hidden");
 }
 
@@ -99,14 +146,10 @@ document.addEventListener("keyup", (e) => {
     else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
 });
 
-// دالة دقيقة لتصحيح إحداثيات اللمس والماوس بناءً على الحجم المعروض والحجم الحقيقي للـ Canvas
 function getCanvasTouchPos(e) {
     let rect = canvas.getBoundingClientRect();
     let clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    
-    // حساب النسبة بين الحجم الحقيقي للـ canvas والحجم الذي يظهر على الشاشة
     let scaleX = canvas.width / rect.width;
-    
     return (clientX - rect.left) * scaleX;
 }
 
@@ -186,7 +229,13 @@ function collisionDetection() {
                     
                     if (checkWin()) {
                         gameRunning = false;
-                        showOverlay("أنت بطل أسطوري! فزت بكل الطوب!", "إعادة اللعب");
+                        
+                        if (currentDifficulty >= unlockedLevel && unlockedLevel < 5) {
+                            unlockedLevel = currentDifficulty + 1;
+                            localStorage.setItem('samball_unlocked', unlockedLevel); //[span_5](start_span)[span_5](end_span)
+                        }
+
+                        showOverlay("أنت بطل أسطوري! فزت بكل الطوب!", "المستوى التالي / إعادة");
                     }
                 }
             }
@@ -206,9 +255,9 @@ function checkWin() {
 function drawBall() {
     ctx.beginPath();
     ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = "#ff4757";
+    ctx.fillStyle = currentDifficulty === 5 ? "#ffd700" : "#ff4757";
     ctx.shadowBlur = 10;
-    ctx.shadowColor = "#ff4757";
+    ctx.shadowColor = currentDifficulty === 5 ? "#ffd700" : "#ff4757";
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.closePath();
@@ -281,9 +330,9 @@ function draw() {
     }
 
     if (rightPressed && paddleX < canvas.width - paddleWidth) {
-        paddleX += 7;
+        paddleX += 8;
     } else if (leftPressed && paddleX > 0) {
-        paddleX -= 7;
+        paddleX -= 8;
     }
 
     x += dx;
@@ -308,4 +357,8 @@ startBtn.addEventListener("click", () => {
     resetBallAndPaddle();
     gameRunning = true;
     draw();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    updateLevelButtons();
 });
