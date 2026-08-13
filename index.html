@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anas games </title>
+    <title>Samball</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
         <div class="home-container">
             <header class="home-header">
                 <img src="logo.png" alt="شعار الأرشيف" class="main-logo">
-                <h1>Anasmagdy 😎  </h1>
+                <h1>Samball</h1>
                 <p>اختر اللعبة أو القسم للبدء بالاستمتاع والتحدي</p>
             </header>
 
@@ -24,7 +24,7 @@
                     <div class="app-icon-wrapper">
                         <img src="logo.png" alt="تكسير الطوب" class="app-icon">
                     </div>
-                    <h3>لعبة تكسير الطوب الملحمية</h3>
+                    <h3>Samball</h3>
                     <p>أقسام متعددة ومستويات سرعة مختلفة</p>
                     <span class="app-badge">تشغيل</span>
                 </div>
@@ -40,24 +40,37 @@
     <div id="levelMenuScreen" class="screen hidden">
         <div class="menu-container">
             <h2>اختر مستوى الصعوبة والتحدي</h2>
-            <p>كل قسم له سرعة وتحدٍ فريد، اختر ما يناسب مهارتك:</p>
+            <p>كل قسم له سرعة وتحدٍ فريد، العب بالترتيب لفتح المستويات:</p>
             
             <div class="difficulty-buttons">
-                <button class="diff-btn easy" onclick="startGame(1)">
-                    <span class="diff-title">القسم السهل</span>
+                <!-- المستوى 1: سهل (متاح دائماً) -->
+                <button class="diff-btn easy" id="btn-level-1" onclick="selectLevel(1)">
+                    <span class="diff-title">القسم السهل 🟢</span>
                     <span class="diff-desc">سرعة هادئة ومناسب للاسترخاء</span>
                 </button>
-                <button class="diff-btn medium" onclick="startGame(2)">
-                    <span class="diff-title">القسم المتوسط</span>
+
+                <!-- المستوى 2: متوسط (مقفل في البداية) -->
+                <button class="diff-btn medium locked" id="btn-level-2" onclick="selectLevel(2)">
+                    <span class="diff-title">القسم المتوسط 🟡 <span class="lock-icon">🔒</span></span>
                     <span class="diff-desc">سرعة متوسطة وتحدي متوازن</span>
                 </button>
-                <button class="diff-btn hard" onclick="startGame(3)">
-                    <span class="diff-title">القسم الصعب</span>
+
+                <!-- المستوى 3: صعب (مقفل) -->
+                <button class="diff-btn hard locked" id="btn-level-3" onclick="selectLevel(3)">
+                    <span class="diff-title">القسم الصعب 🟠 <span class="lock-icon">🔒</span></span>
                     <span class="diff-desc">سريع ومثير لردود الفعل السريعة</span>
                 </button>
-                <button class="diff-btn extreme" onclick="startGame(4)">
-                    <span class="diff-title">الصعب جداً (المستحيل)</span>
+
+                <!-- المستوى 4: صعب جداً (مقفل) -->
+                <button class="diff-btn extreme locked" id="btn-level-4" onclick="selectLevel(4)">
+                    <span class="diff-title">الصعب جداً 🔴 <span class="lock-icon">🔒</span></span>
                     <span class="diff-desc">فائق السرعة، للاعبين الأسطوريين فقط!</span>
+                </button>
+
+                <!-- المستوى 5: المستحيل (مقلب الـ 100$) -->
+                <button class="diff-btn impossible locked" id="btn-level-5" onclick="selectLevel(5)">
+                    <span class="diff-title">المستوى المستحيل (اكسب 100$ 💵) <span class="lock-icon">🔒</span></span>
+                    <span class="diff-desc">صعب بجنون! اللي يكسبه ياخد الجائزة (كذب 😂)</span>
                 </button>
             </div>
 
@@ -71,7 +84,7 @@
             <header class="game-header">
                 <div class="logo-area">
                     <img src="logo.png" alt="شعار اللعبة" class="game-logo" onclick="backToMenu()">
-                    <h1 id="currentModeTitle">تكسير الطوب</h1>
+                    <h1 id="currentModeTitle">Samball</h1>
                 </div>
                 <div class="stats-panel">
                     <div class="stat-box">النقاط: <span id="score">0</span></div>
