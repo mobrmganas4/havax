@@ -28,16 +28,16 @@ let currentDifficulty = 1;
 let gameRunning = false;
 let animationFrameId = null;
 
-// نظام تخزين المستويات المفتوحة في الـ Cache (LocalStorage)[span_1](start_span)[span_1](end_span)
+// نظام تخزين المستويات المفتوحة في الـ Cache (LocalStorage)
 let unlockedLevel = localStorage.getItem('samball_unlocked') ? parseInt(localStorage.getItem('samball_unlocked')) : 1;
 
-// سرعات المستويات (المستوى الخامس أسرع بكثير وبشكل جنوني!)[span_2](start_span)[span_2](end_span)
+// سرعات المستويات (المستوى الخامس سرعته 100 جنونية مستحيلة لتأمين الـ 100$ 😂)
 const speeds = {
     1: { dx: 3, dy: -3 }, 
     2: { dx: 5, dy: -5 }, 
     3: { dx: 7, dy: -7 }, 
     4: { dx: 10, dy: -10 },
-    5: { dx: 16, dy: -16 } // سرعة خارقة ومستحيلة للمستوى الأخير[span_3](start_span)[span_3](end_span)
+    5: { dx: 100, dy: -100 } // السرعة المدمرة 100 للمستوى المستحيل
 };
 
 const modeNames = {
@@ -72,7 +72,7 @@ function backToHome() {
     homeScreen.classList.remove("hidden");
 }
 
-// تحديث واجهة أزرار المستويات (إظهار الأقفال للمستويات المغلقة)[span_4](start_span)[span_4](end_span)
+// تحديث واجهة أزرار المستويات (إظهار الأقفال للمستويات المغلقة)
 function updateLevelButtons() {
     for (let i = 1; i <= 5; i++) {
         let btn = document.getElementById(`btn-level-${i}`);
@@ -119,7 +119,7 @@ function selectLevel(diff) {
     }
 
     if (diff === 5) {
-        alert("⚠️ تحذير: هذا المستوى مستحيل بجنون والكرة تطير بسرعة البرق! إذا فزت (وده استحالة) هتاخد الـ 100$ (كذب طبعا 😂). بالتوفيق يا أسطورة!");
+        alert("⚠️ تحذير: هذا المستوى مستحيل بجنون والكرة بسرعة 100! إذا فزت هتاخد الـ 100$ بجد (وده مش هيحصل أبداً 😂). بالتوفيق يا أسطورة!");
     }
 
     startGame(diff);
@@ -153,10 +153,17 @@ function getCanvasTouchPos(e) {
     return (clientX - rect.left) * scaleX;
 }
 
+// في المستوى المستحيل المضرب هيكون أثقل في الحركة بالماوس/اللمس
 document.addEventListener("mousemove", (e) => {
     let relativeX = getCanvasTouchPos(e);
     if (!isNaN(relativeX)) {
-        paddleX = relativeX - paddleWidth / 2;
+        let targetPaddleX = relativeX - paddleWidth / 2;
+        // لو المستوى 5 نخلي المضرب يتحرك ببطء وثقل شديد
+        if (currentDifficulty === 5) {
+            paddleX += (targetPaddleX - paddleX) * 0.15; // حركة بطيئة وثقيلة
+        } else {
+            paddleX = targetPaddleX;
+        }
         if (paddleX < 0) paddleX = 0;
         if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
     }
@@ -165,7 +172,12 @@ document.addEventListener("mousemove", (e) => {
 canvas.addEventListener("touchmove", (e) => {
     let touchX = getCanvasTouchPos(e);
     if (!isNaN(touchX)) {
-        paddleX = touchX - paddleWidth / 2;
+        let targetPaddleX = touchX - paddleWidth / 2;
+        if (currentDifficulty === 5) {
+            paddleX += (targetPaddleX - paddleX) * 0.15; // ثقل في حركة اللمس بالمستوى المستحيل
+        } else {
+            paddleX = targetPaddleX;
+        }
         if (paddleX < 0) paddleX = 0;
         if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
     }
@@ -232,10 +244,14 @@ function collisionDetection() {
                         
                         if (currentDifficulty >= unlockedLevel && unlockedLevel < 5) {
                             unlockedLevel = currentDifficulty + 1;
-                            localStorage.setItem('samball_unlocked', unlockedLevel); //[span_5](start_span)[span_5](end_span)
+                            localStorage.setItem('samball_unlocked', unlockedLevel);
                         }
 
-                        showOverlay("أنت بطل أسطوري! فزت بكل الطوب!", "المستوى التالي / إعادة");
+                        if (currentDifficulty === 5) {
+                            showOverlay("يا ابني أنت كسبت الـ 100$؟! ده أنت الساحر أومال! 💵🔥", "مبروك يا أسطورة");
+                        } else {
+                            showOverlay("أنت بطل أسطوري! فزت بكل الطوب!", "المستوى التالي / إعادة");
+                        }
                     }
                 }
             }
@@ -321,7 +337,7 @@ function draw() {
             livesEl.innerText = lives;
             if (lives <= 0) {
                 gameRunning = false;
-                showOverlay("انتهت اللعبة! حظ أوفر في المرة القادمة", "حاول مجدداً");
+                showOverlay("انتهت اللعبة! مع السلامة الـ 100$ 😂", "حاول مجدداً");
                 return;
             } else {
                 resetBallAndPaddle();
@@ -329,10 +345,13 @@ function draw() {
         }
     }
 
+    // سرعة الكيبورد للمضرب (تكون ثقيلة وبطيئة جداً في المستوى الخامس)
+    let keyboardPaddleSpeed = currentDifficulty === 5 ? 3 : 8;
+
     if (rightPressed && paddleX < canvas.width - paddleWidth) {
-        paddleX += 8;
+        paddleX += keyboardPaddleSpeed;
     } else if (leftPressed && paddleX > 0) {
-        paddleX -= 8;
+        paddleX -= keyboardPaddleSpeed;
     }
 
     x += dx;
@@ -362,3 +381,4 @@ startBtn.addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", () => {
     updateLevelButtons();
 });
+
