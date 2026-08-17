@@ -7,16 +7,22 @@ document.addEventListener('touchmove', function (e) {
     e.preventDefault();
 }, { passive: false });
 
+// العناصر الرئيسية للواجهات
 const homeScreen = document.getElementById("homeScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
 const gameScreen = document.getElementById("gameScreen");
+const shopScreen = document.getElementById("shopScreen");
+const prankScreen = document.getElementById("prankScreen");
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const scoreEl = document.getElementById("score");
 const livesEl = document.getElementById("lives");
+const coinsEl = document.getElementById("coins");
+const shopCoinsEl = document.getElementById("shopCoins");
 const currentModeTitle = document.getElementById("currentModeTitle");
+
 const overlay = document.getElementById("messageOverlay");
 const overlayTitle = document.getElementById("overlayTitle");
 const overlayText = document.getElementById("overlayText");
@@ -24,20 +30,25 @@ const startBtn = document.getElementById("startBtn");
 
 let score = 0;
 let lives = 3;
+let coins = localStorage.getItem('samball_coins') ? parseInt(localStorage.getItem('samball_coins')) : 0;
 let currentDifficulty = 1; 
 let gameRunning = false;
 let animationFrameId = null;
 
-// نظام تخزين المستويات المفتوحة في الـ Cache (LocalStorage)
+// نظام المستويات المفتوحة
 let unlockedLevel = localStorage.getItem('samball_unlocked') ? parseInt(localStorage.getItem('samball_unlocked')) : 1;
 
-// سرعات المستويات (المستوى الخامس سرعته 100 جنونية مستحيلة لتأمين الـ 100$ 😂)
+// نظام كرات المتجر
+let equippedBall = localStorage.getItem('samball_ball') || 'default';
+let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['default'];
+
+// سرعات المستويات[span_0](start_span)[span_0](end_span)
 const speeds = {
     1: { dx: 3, dy: -3 }, 
     2: { dx: 5, dy: -5 }, 
     3: { dx: 7, dy: -7 }, 
     4: { dx: 10, dy: -10 },
-    5: { dx: 100, dy: -100 } // السرعة المدمرة 100 للمستوى المستحيل
+    5: { dx: 100, dy: -100 } // المستوى المستحيل[span_1](start_span)[span_1](end_span)
 };
 
 const modeNames = {
@@ -61,6 +72,7 @@ let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
 
+// --- التنقل بين الشاشات ---
 function openGameMenu() {
     homeScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
@@ -69,10 +81,74 @@ function openGameMenu() {
 
 function backToHome() {
     levelMenuScreen.classList.add("hidden");
+    shopScreen.classList.add("hidden");
     homeScreen.classList.remove("hidden");
 }
 
-// تحديث واجهة أزرار المستويات (إظهار الأقفال للمستويات المغلقة)
+function openShop() {
+    homeScreen.classList.add("hidden");
+    shopScreen.classList.remove("hidden");
+    updateShopUI();
+}
+
+// --- نظام المتجر والعملات ---
+function updateCoinsDisplay() {
+    if (coinsEl) coinsEl.innerText = coins;
+    if (shopCoinsEl) shopCoinsEl.innerText = coins;
+    localStorage.setItem('samball_coins', coins);
+}
+
+function updateShopUI() {
+    updateCoinsDisplay();
+    
+    // التحديث البصري لأزرار المتجر
+    ['default', 'fire', 'neon'].forEach(ballType => {
+        const btn = document.getElementById(`buy-btn-${ballType}`);
+        if (!btn) return;
+
+        if (equippedBall === ballType) {
+            btn.innerText = "مُجهز حالياً";
+            btn.className = "shop-btn equipped";
+        } else if (ownedBalls.includes(ballType)) {
+            btn.innerText = "تجهيز";
+            btn.className = "shop-btn";
+            btn.onclick = () => equipBall(ballType);
+        } else {
+            btn.className = "shop-btn";
+        }
+    });
+}
+
+function buyBall(ballType, price) {
+    if (ownedBalls.includes(ballType)) {
+        equipBall(ballType);
+        return;
+    }
+
+    if (coins >= price) {
+        coins -= price;
+        ownedBalls.push(ballType);
+        equippedBall = ballType;
+        
+        localStorage.setItem('samball_owned_balls', JSON.stringify(ownedBalls));
+        localStorage.setItem('samball_ball', equippedBall);
+        
+        updateShopUI();
+        alert("🎉 تم الشراء والتجهيز بنجاح!");
+    } else {
+        alert("❌ لا تمتلك نقاط كافية للشراء!");
+    }
+}
+
+function equipBall(ballType) {
+    if (ownedBalls.includes(ballType)) {
+        equippedBall = ballType;
+        localStorage.setItem('samball_ball', equippedBall);
+        updateShopUI();
+    }
+}
+
+// --- أزرار المستويات ---
 function updateLevelButtons() {
     for (let i = 1; i <= 5; i++) {
         let btn = document.getElementById(`btn-level-${i}`);
@@ -130,12 +206,14 @@ function backToMenu() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     
     gameScreen.classList.add("hidden");
+    prankScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
     updateLevelButtons();
     
     overlay.classList.add("hidden");
 }
 
+// --- التحكم بالحركة ---
 document.addEventListener("keydown", (e) => {
     if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
     else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
@@ -153,14 +231,12 @@ function getCanvasTouchPos(e) {
     return (clientX - rect.left) * scaleX;
 }
 
-// في المستوى المستحيل المضرب هيكون أثقل في الحركة بالماوس/اللمس
 document.addEventListener("mousemove", (e) => {
     let relativeX = getCanvasTouchPos(e);
     if (!isNaN(relativeX)) {
         let targetPaddleX = relativeX - paddleWidth / 2;
-        // لو المستوى 5 نخلي المضرب يتحرك ببطء وثقل شديد
         if (currentDifficulty === 5) {
-            paddleX += (targetPaddleX - paddleX) * 0.15; // حركة بطيئة وثقيلة
+            paddleX += (targetPaddleX - paddleX) * 0.15; 
         } else {
             paddleX = targetPaddleX;
         }
@@ -174,7 +250,7 @@ canvas.addEventListener("touchmove", (e) => {
     if (!isNaN(touchX)) {
         let targetPaddleX = touchX - paddleWidth / 2;
         if (currentDifficulty === 5) {
-            paddleX += (targetPaddleX - paddleX) * 0.15; // ثقل في حركة اللمس بالمستوى المستحيل
+            paddleX += (targetPaddleX - paddleX) * 0.15; 
         } else {
             paddleX = targetPaddleX;
         }
@@ -184,6 +260,7 @@ canvas.addEventListener("touchmove", (e) => {
     e.preventDefault();
 }, { passive: false });
 
+// --- منطق اللعبة ---
 const brickRowCount = 5;
 const brickColumnCount = 7;
 const brickWidth = 72;
@@ -213,6 +290,7 @@ function startGame(diff) {
     lives = 3;
     scoreEl.innerText = score;
     livesEl.innerText = lives;
+    updateCoinsDisplay();
 
     initBricks();
     resetBallAndPaddle();
@@ -236,8 +314,14 @@ function collisionDetection() {
                 if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
                     dy = -dy;
                     b.status = 0;
-                    score += 10 * currentDifficulty;
+                    
+                    // زيادة النقاط والعملات
+                    let addedScore = 10 * currentDifficulty;
+                    score += addedScore;
+                    coins += currentDifficulty; // إضافة عملة مع كل طوبة
+                    
                     scoreEl.innerText = score;
+                    updateCoinsDisplay();
                     
                     if (checkWin()) {
                         gameRunning = false;
@@ -248,7 +332,7 @@ function collisionDetection() {
                         }
 
                         if (currentDifficulty === 5) {
-                            showOverlay("يا ابني أنت كسبت الـ 100$؟! ده أنت الساحر أومال! 💵🔥", "مبروك يا أسطورة");
+                            showPrankScreen(); // إظهار شاشة المقلب عند الفوز بالـ 100$
                         } else {
                             showOverlay("أنت بطل أسطوري! فزت بكل الطوب!", "المستوى التالي / إعادة");
                         }
@@ -268,12 +352,25 @@ function checkWin() {
     return true;
 }
 
+// رسم الكرة بناءً على نوع المظهر من المتجر
 function drawBall() {
     ctx.beginPath();
     ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = currentDifficulty === 5 ? "#ffd700" : "#ff4757";
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = currentDifficulty === 5 ? "#ffd700" : "#ff4757";
+    
+    if (equippedBall === 'fire') {
+        ctx.fillStyle = "#ff7f50";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ffa502";
+    } else if (equippedBall === 'neon') {
+        ctx.fillStyle = "#00f2fe";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#00f2fe";
+    } else {
+        ctx.fillStyle = currentDifficulty === 5 ? "#ffd700" : "#ff4757";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = currentDifficulty === 5 ? "#ffd700" : "#ff4757";
+    }
+
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.closePath();
@@ -345,7 +442,6 @@ function draw() {
         }
     }
 
-    // سرعة الكيبورد للمضرب (تكون ثقيلة وبطيئة جداً في المستوى الخامس)
     let keyboardPaddleSpeed = currentDifficulty === 5 ? 3 : 8;
 
     if (rightPressed && paddleX < canvas.width - paddleWidth) {
@@ -366,6 +462,11 @@ function showOverlay(title, btnText) {
     overlay.classList.remove("hidden");
 }
 
+function showPrankScreen() {
+    gameScreen.classList.add("hidden");
+    prankScreen.classList.remove("hidden");
+}
+
 startBtn.addEventListener("click", () => {
     overlay.classList.add("hidden");
     score = 0;
@@ -380,5 +481,5 @@ startBtn.addEventListener("click", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     updateLevelButtons();
+    updateCoinsDisplay();
 });
-
