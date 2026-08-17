@@ -483,3 +483,4 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLevelButtons();
     updateCoinsDisplay();
 });
+
