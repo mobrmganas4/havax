@@ -12,15 +12,15 @@ const homeScreen = document.getElementById("homeScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
 const gameScreen = document.getElementById("gameScreen");
 const shopScreen = document.getElementById("shopScreen");
-const prankScreen = document.getElementById("prankScreen");
+const celebrationScreen = document.getElementById("celebrationScreen");
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const scoreEl = document.getElementById("score");
 const livesEl = document.getElementById("lives");
-const coinsEl = document.getElementById("coins");
-const shopCoinsEl = document.getElementById("shopCoins");
+const gameCoinsEl = document.getElementById("gameCoins");
+const totalCoinsEl = document.getElementById("totalCoins");
 const currentModeTitle = document.getElementById("currentModeTitle");
 
 const overlay = document.getElementById("messageOverlay");
@@ -42,13 +42,13 @@ let unlockedLevel = localStorage.getItem('samball_unlocked') ? parseInt(localSto
 let equippedBall = localStorage.getItem('samball_ball') || 'default';
 let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['default'];
 
-// سرعات المستويات[span_0](start_span)[span_0](end_span)
+// سرعات المستويات
 const speeds = {
     1: { dx: 3, dy: -3 }, 
     2: { dx: 5, dy: -5 }, 
     3: { dx: 7, dy: -7 }, 
     4: { dx: 10, dy: -10 },
-    5: { dx: 100, dy: -100 } // المستوى المستحيل[span_1](start_span)[span_1](end_span)
+    5: { dx: 100, dy: -100 } // المستوى المستحيل
 };
 
 const modeNames = {
@@ -82,10 +82,12 @@ function openGameMenu() {
 function backToHome() {
     levelMenuScreen.classList.add("hidden");
     shopScreen.classList.add("hidden");
+    celebrationScreen.classList.add("hidden");
     homeScreen.classList.remove("hidden");
 }
 
-function openShop() {
+// تعديل دالة المتجر لتتطابق مع الـ HTML
+function openShopMenu() {
     homeScreen.classList.add("hidden");
     shopScreen.classList.remove("hidden");
     updateShopUI();
@@ -93,35 +95,41 @@ function openShop() {
 
 // --- نظام المتجر والعملات ---
 function updateCoinsDisplay() {
-    if (coinsEl) coinsEl.innerText = coins;
-    if (shopCoinsEl) shopCoinsEl.innerText = coins;
+    if (gameCoinsEl) gameCoinsEl.innerText = coins;
+    if (totalCoinsEl) totalCoinsEl.innerText = coins;
     localStorage.setItem('samball_coins', coins);
 }
 
 function updateShopUI() {
     updateCoinsDisplay();
     
-    // التحديث البصري لأزرار المتجر
     ['default', 'fire', 'neon'].forEach(ballType => {
-        const btn = document.getElementById(`buy-btn-${ballType}`);
+        const itemContainer = document.getElementById(`item-${ballType}`);
+        if (!itemContainer) return;
+        
+        const btn = itemContainer.querySelector(".shop-btn");
         if (!btn) return;
 
         if (equippedBall === ballType) {
-            btn.innerText = "مُجهز حالياً";
+            btn.innerText = "مستخدم حالياً";
             btn.className = "shop-btn equipped";
+            btn.onclick = null;
         } else if (ownedBalls.includes(ballType)) {
             btn.innerText = "تجهيز";
             btn.className = "shop-btn";
-            btn.onclick = () => equipBall(ballType);
+            btn.onclick = () => equipItem(ballType);
         } else {
+            btn.innerText = "شراء";
             btn.className = "shop-btn";
+            let price = ballType === 'fire' ? 150 : 300;
+            btn.onclick = () => buyItem(ballType, price);
         }
     });
 }
 
-function buyBall(ballType, price) {
+function buyItem(ballType, price) {
     if (ownedBalls.includes(ballType)) {
-        equipBall(ballType);
+        equipItem(ballType);
         return;
     }
 
@@ -140,7 +148,7 @@ function buyBall(ballType, price) {
     }
 }
 
-function equipBall(ballType) {
+function equipItem(ballType) {
     if (ownedBalls.includes(ballType)) {
         equippedBall = ballType;
         localStorage.setItem('samball_ball', equippedBall);
@@ -206,7 +214,7 @@ function backToMenu() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     
     gameScreen.classList.add("hidden");
-    prankScreen.classList.add("hidden");
+    celebrationScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
     updateLevelButtons();
     
@@ -315,10 +323,9 @@ function collisionDetection() {
                     dy = -dy;
                     b.status = 0;
                     
-                    // زيادة النقاط والعملات
                     let addedScore = 10 * currentDifficulty;
                     score += addedScore;
-                    coins += currentDifficulty; // إضافة عملة مع كل طوبة
+                    coins += currentDifficulty;
                     
                     scoreEl.innerText = score;
                     updateCoinsDisplay();
@@ -332,7 +339,7 @@ function collisionDetection() {
                         }
 
                         if (currentDifficulty === 5) {
-                            showPrankScreen(); // إظهار شاشة المقلب عند الفوز بالـ 100$
+                            showCelebrationScreen();
                         } else {
                             showOverlay("أنت بطل أسطوري! فزت بكل الطوب!", "المستوى التالي / إعادة");
                         }
@@ -352,7 +359,6 @@ function checkWin() {
     return true;
 }
 
-// رسم الكرة بناءً على نوع المظهر من المتجر
 function drawBall() {
     ctx.beginPath();
     ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
@@ -462,9 +468,9 @@ function showOverlay(title, btnText) {
     overlay.classList.remove("hidden");
 }
 
-function showPrankScreen() {
+function showCelebrationScreen() {
     gameScreen.classList.add("hidden");
-    prankScreen.classList.remove("hidden");
+    celebrationScreen.classList.remove("hidden");
 }
 
 startBtn.addEventListener("click", () => {
