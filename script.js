@@ -2,12 +2,10 @@
     'use strict';
 
     // --- 🔒 طبقة الحماية القصوى ضد الـ Console والـ DevTools ---
-    // 1. منع الفتح بالقائمة الجانبية (Right-Click)
     document.addEventListener('contextmenu', function (e) {
         e.preventDefault();
     });
 
-    // 2. منع أزرار واختصارات الهكر والـ Console
     document.addEventListener('keydown', function (e) {
         if (
             e.key === 'F12' ||
@@ -62,13 +60,13 @@
     let equippedBall = localStorage.getItem('samball_ball') || 'default';
     let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['default'];
 
-    // ⚡ سرعات المستويات الجديدة (المحدثة للأسرع)
+    // ⚡ سرعات المستويات حسب طلبك يا أنس
     const speeds = {
-        1: { dx: 5, dy: -5 }, // القسم السهل (كان 3 - زاد شوية)
-        2: { dx: 7,   dy: -7 },   // القسم المتوسط (كان 5 - بقى أسرع)
-        3: { dx: 10, dy: -10 }, // القسم الصعب (كان 7 - بقى أسرع)
-        4: { dx: 15,  dy: -15 },  // الصعب جداً (كان 10 - بقى طيارة)
-        5: { dx: 100, dy: -100 }  // المستوى المستحيل
+        1: { dx: 5,   dy: -5 },   // السهل = 5
+        2: { dx: 7,   dy: -7 },   // المتوسط = 7
+        3: { dx: 10,  dy: -10 },  // الصعب = 10
+        4: { dx: 15,  dy: -15 },  // الصعب جداً = 15
+        5: { dx: 100, dy: -100 }  // المستحيل = 100
     };
 
     const modeNames = {
@@ -81,8 +79,8 @@
 
     let x = canvas ? canvas.width / 2 : 0;
     let y = canvas ? canvas.height - 40 : 0;
-    let dx = 4.5;
-    let dy = -4.5;
+    let dx = 5;
+    let dy = -5;
     const ballRadius = 9;
 
     const paddleHeight = 14;
@@ -92,7 +90,7 @@
     let rightPressed = false;
     let leftPressed = false;
 
-    // مصفوفة لحفظ تأثير ذيل الكرة المجنونة
+    // مصفوفة لحفظ تأثير ذيل الكرة
     let ballTrail = [];
 
     // --- التنقل بين الشاشات ---
@@ -105,7 +103,7 @@
     function backToHome() {
         if (levelMenuScreen) levelMenuScreen.classList.add("hidden");
         if (shopScreen) shopScreen.classList.add("hidden");
-        if (celebrationScreen) celebrationScreen.classList.add("hidden");
+        if (celebrationScreen) celebrationScreen.classList.remove("hidden");
         if (homeScreen) homeScreen.classList.remove("hidden");
     }
 
@@ -486,9 +484,12 @@
             dy = -dy;
         } else if (y + dy > canvas.height - ballRadius - 5) {
             if (x > paddleX && x < paddleX + paddleWidth) {
+                // الحفاظ على السرعة الحقيقية بعد الاصطدام بالمضرب
                 let hitPoint = x - (paddleX + paddleWidth / 2);
-                dx = hitPoint * 0.15;
-                dy = -Math.abs(dy);
+                let currentLevelSpeed = Math.abs(speeds[currentDifficulty].dy);
+                let speedFactor = currentLevelSpeed / 5; // ضبط نسبة الارتداد الجانبي
+                dx = hitPoint * 0.15 * speedFactor;
+                dy = -currentLevelSpeed;
             } else {
                 lives--;
                 if (livesEl) livesEl.innerText = lives;
@@ -541,7 +542,7 @@
         });
     }
 
-    // --- 🔑 ربط جميع الدوال بالـ Window حتى يراها الـ HTML بدون تعليق ---
+    // --- 🔑 ربط جميع الدوال بالـ Window ---
     window.openGameMenu = openGameMenu;
     window.backToHome = backToHome;
     window.openShopMenu = openShopMenu;
