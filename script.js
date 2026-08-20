@@ -7,7 +7,7 @@
         e.preventDefault();
     });
 
-    // 2. منع أزرار وااختصارات الهكر والـ Console
+    // 2. منع أزرار واختصارات الهكر والـ Console
     document.addEventListener('keydown', function (e) {
         if (
             e.key === 'F12' ||
@@ -35,7 +35,7 @@
     const celebrationScreen = document.getElementById("celebrationScreen");
 
     const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas ? canvas.getContext("2d") : null;
 
     const scoreEl = document.getElementById("score");
     const livesEl = document.getElementById("lives");
@@ -62,13 +62,13 @@
     let equippedBall = localStorage.getItem('samball_ball') || 'default';
     let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['default'];
 
-    // سرعات المستويات
+    // ⚡ سرعات المستويات الجديدة (المحدثة للأسرع)
     const speeds = {
-        1: { dx: 3, dy: -3 }, 
-        2: { dx: 5, dy: -5 }, 
-        3: { dx: 7, dy: -7 }, 
-        4: { dx: 10, dy: -10 },
-        5: { dx: 100, dy: -100 } // المستوى المستحيل
+        1: { dx: 4.5, dy: -4.5 }, // القسم السهل (كان 3 - زاد شوية)
+        2: { dx: 7,   dy: -7 },   // القسم المتوسط (كان 5 - بقى أسرع)
+        3: { dx: 9.5, dy: -9.5 }, // القسم الصعب (كان 7 - بقى أسرع)
+        4: { dx: 13,  dy: -13 },  // الصعب جداً (كان 10 - بقى طيارة)
+        5: { dx: 100, dy: -100 }  // المستوى المستحيل
     };
 
     const modeNames = {
@@ -79,15 +79,15 @@
         5: "المستوى المستحيل (اكسب 100$ 💵)"
     };
 
-    let x = canvas.width / 2;
-    let y = canvas.height - 40;
-    let dx = 3;
-    let dy = -3;
+    let x = canvas ? canvas.width / 2 : 0;
+    let y = canvas ? canvas.height - 40 : 0;
+    let dx = 4.5;
+    let dy = -4.5;
     const ballRadius = 9;
 
     const paddleHeight = 14;
     const paddleWidth = 90;
-    let paddleX = (canvas.width - paddleWidth) / 2;
+    let paddleX = canvas ? (canvas.width - paddleWidth) / 2 : 0;
 
     let rightPressed = false;
     let leftPressed = false;
@@ -255,6 +255,7 @@
     });
 
     function getCanvasTouchPos(e) {
+        if (!canvas) return 0;
         let rect = canvas.getBoundingClientRect();
         let clientX = e.clientX || (e.touches && e.touches[0].clientX);
         let scaleX = canvas.width / rect.width;
@@ -262,6 +263,7 @@
     }
 
     document.addEventListener("mousemove", (e) => {
+        if (!canvas) return;
         let relativeX = getCanvasTouchPos(e);
         if (!isNaN(relativeX)) {
             let targetPaddleX = relativeX - paddleWidth / 2;
@@ -330,6 +332,7 @@
     }
 
     function resetBallAndPaddle() {
+        if (!canvas) return;
         x = canvas.width / 2;
         y = canvas.height - 40;
         const baseSpeed = speeds[currentDifficulty];
@@ -385,6 +388,8 @@
     }
 
     function drawBall() {
+        if (!ctx) return;
+
         if (equippedBall === 'devil') {
             ballTrail.push({ x: x, y: y });
             if (ballTrail.length > 8) ballTrail.shift();
@@ -430,6 +435,7 @@
     }
 
     function drawPaddle() {
+        if (!ctx || !canvas) return;
         ctx.beginPath();
         ctx.roundRect(paddleX, canvas.height - paddleHeight - 8, paddleWidth, paddleHeight, 6);
         ctx.fillStyle = "#2ed573";
@@ -443,6 +449,7 @@
     const brickColors = ["#ff4757", "#ffa502", "#2ed573", "#1e90ff", "#9b59b6"];
 
     function drawBricks() {
+        if (!ctx) return;
         for (let c = 0; c < brickColumnCount; c++) {
             for (let r = 0; r < brickRowCount; r++) {
                 if (bricks[c][r].status === 1) {
@@ -464,7 +471,7 @@
     }
 
     function draw() {
-        if (!gameRunning) return;
+        if (!gameRunning || !ctx || !canvas) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawBricks();
@@ -495,7 +502,7 @@
             }
         }
 
-        let keyboardPaddleSpeed = currentDifficulty === 5 ? 3 : 8;
+        let keyboardPaddleSpeed = currentDifficulty === 5 ? 3 : 10;
 
         if (rightPressed && paddleX < canvas.width - paddleWidth) {
             paddleX += keyboardPaddleSpeed;
