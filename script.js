@@ -1,3 +1,4 @@
+localstorage.clear();
 // --- منع سحب الشاشة للأسفل للتحديث نهائياً داخل التطبيق ---
 document.addEventListener('touchmove', function (e) {
     if (e.scale !== 1) { return; }
