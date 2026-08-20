@@ -7,7 +7,7 @@
         e.preventDefault();
     });
 
-    // 2. منع أزرار واختصارات الهكر والـ Console
+    // 2. منع أزرار وااختصارات الهكر والـ Console
     document.addEventListener('keydown', function (e) {
         if (
             e.key === 'F12' ||
@@ -97,21 +97,21 @@
 
     // --- التنقل بين الشاشات ---
     function openGameMenu() {
-        homeScreen.classList.add("hidden");
-        levelMenuScreen.classList.remove("hidden");
+        if (homeScreen) homeScreen.classList.add("hidden");
+        if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
         updateLevelButtons();
     }
 
     function backToHome() {
-        levelMenuScreen.classList.add("hidden");
-        shopScreen.classList.add("hidden");
-        celebrationScreen.classList.add("hidden");
-        homeScreen.classList.remove("hidden");
+        if (levelMenuScreen) levelMenuScreen.classList.add("hidden");
+        if (shopScreen) shopScreen.classList.add("hidden");
+        if (celebrationScreen) celebrationScreen.classList.add("hidden");
+        if (homeScreen) homeScreen.classList.remove("hidden");
     }
 
     function openShopMenu() {
-        homeScreen.classList.add("hidden");
-        shopScreen.classList.remove("hidden");
+        if (homeScreen) homeScreen.classList.add("hidden");
+        if (shopScreen) shopScreen.classList.remove("hidden");
         updateShopUI();
     }
 
@@ -235,12 +235,12 @@
         gameRunning = false;
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         
-        gameScreen.classList.add("hidden");
-        celebrationScreen.classList.add("hidden");
-        levelMenuScreen.classList.remove("hidden");
+        if (gameScreen) gameScreen.classList.add("hidden");
+        if (celebrationScreen) celebrationScreen.classList.add("hidden");
+        if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
         updateLevelButtons();
         
-        overlay.classList.add("hidden");
+        if (overlay) overlay.classList.add("hidden");
     }
 
     // --- التحكم بالحركة ---
@@ -275,20 +275,22 @@
         }
     });
 
-    canvas.addEventListener("touchmove", (e) => {
-        let touchX = getCanvasTouchPos(e);
-        if (!isNaN(touchX)) {
-            let targetPaddleX = touchX - paddleWidth / 2;
-            if (currentDifficulty === 5) {
-                paddleX += (targetPaddleX - paddleX) * 0.15; 
-            } else {
-                paddleX = targetPaddleX;
+    if (canvas) {
+        canvas.addEventListener("touchmove", (e) => {
+            let touchX = getCanvasTouchPos(e);
+            if (!isNaN(touchX)) {
+                let targetPaddleX = touchX - paddleWidth / 2;
+                if (currentDifficulty === 5) {
+                    paddleX += (targetPaddleX - paddleX) * 0.15; 
+                } else {
+                    paddleX = targetPaddleX;
+                }
+                if (paddleX < 0) paddleX = 0;
+                if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
             }
-            if (paddleX < 0) paddleX = 0;
-            if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
-        }
-        e.preventDefault();
-    }, { passive: false });
+            e.preventDefault();
+        }, { passive: false });
+    }
 
     // --- منطق اللعبة ---
     const brickRowCount = 5;
@@ -312,14 +314,14 @@
 
     function startGame(diff) {
         currentDifficulty = diff;
-        levelMenuScreen.classList.add("hidden");
-        gameScreen.classList.remove("hidden");
-        currentModeTitle.innerText = modeNames[diff];
+        if (levelMenuScreen) levelMenuScreen.classList.add("hidden");
+        if (gameScreen) gameScreen.classList.remove("hidden");
+        if (currentModeTitle) currentModeTitle.innerText = modeNames[diff];
         
         score = 0;
         lives = 3;
-        scoreEl.innerText = score;
-        livesEl.innerText = lives;
+        if (scoreEl) scoreEl.innerText = score;
+        if (livesEl) livesEl.innerText = lives;
         updateCoinsDisplay();
 
         initBricks();
@@ -350,7 +352,7 @@
                         score += addedScore;
                         coins += currentDifficulty;
                         
-                        scoreEl.innerText = score;
+                        if (scoreEl) scoreEl.innerText = score;
                         updateCoinsDisplay();
                         
                         if (checkWin()) {
@@ -482,7 +484,7 @@
                 dy = -Math.abs(dy);
             } else {
                 lives--;
-                livesEl.innerText = lives;
+                if (livesEl) livesEl.innerText = lives;
                 if (lives <= 0) {
                     gameRunning = false;
                     showOverlay("انتهت اللعبة! مع السلامة الـ 100$ 😂", "حاول مجدداً");
@@ -507,34 +509,39 @@
     }
 
     function showOverlay(title, btnText) {
-        overlayTitle.innerText = title;
-        overlayText.innerText = `النقاط الحالية: ${score} | الأرواح: ${lives}`;
-        startBtn.innerText = btnText;
-        overlay.classList.remove("hidden");
+        if (overlayTitle) overlayTitle.innerText = title;
+        if (overlayText) overlayText.innerText = `النقاط الحالية: ${score} | الأرواح: ${lives}`;
+        if (startBtn) startBtn.innerText = btnText;
+        if (overlay) overlay.classList.remove("hidden");
     }
 
     function showCelebrationScreen() {
-        gameScreen.classList.add("hidden");
-        celebrationScreen.classList.remove("hidden");
+        if (gameScreen) gameScreen.classList.add("hidden");
+        if (celebrationScreen) celebrationScreen.classList.remove("hidden");
     }
 
-    startBtn.addEventListener("click", () => {
-        overlay.classList.add("hidden");
-        score = 0;
-        lives = 3;
-        scoreEl.innerText = score;
-        livesEl.innerText = lives;
-        initBricks();
-        resetBallAndPaddle();
-        gameRunning = true;
-        draw();
-    });
+    if (startBtn) {
+        startBtn.addEventListener("click", () => {
+            if (overlay) overlay.classList.add("hidden");
+            score = 0;
+            lives = 3;
+            if (scoreEl) scoreEl.innerText = score;
+            if (livesEl) livesEl.innerText = lives;
+            initBricks();
+            resetBallAndPaddle();
+            gameRunning = true;
+            draw();
+        });
+    }
 
-    // ربط الدوال بالـ window للواجهة فقط
+    // --- 🔑 ربط جميع الدوال بالـ Window حتى يراها الـ HTML بدون تعليق ---
     window.openGameMenu = openGameMenu;
     window.backToHome = backToHome;
     window.openShopMenu = openShopMenu;
     window.backToMenu = backToMenu;
+    window.selectLevel = selectLevel;
+    window.buyItem = buyItem;
+    window.equipItem = equipItem;
 
     document.addEventListener("DOMContentLoaded", () => {
         updateLevelButtons();
