@@ -1,4 +1,5 @@
-localstorage.clear();
+// 🧹 كود التصفير الشامل (حذف كل شيء من أجهزة اللاعبين)
+localStorage.clear();
 // --- منع سحب الشاشة للأسفل للتحديث نهائياً داخل التطبيق ---
 document.addEventListener('touchmove', function (e) {
     if (e.scale !== 1) { return; }
