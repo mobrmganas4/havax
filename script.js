@@ -1,5 +1,38 @@
 (function () {
     'use strict';
+        // --- 🔄 نظام التحديث الإجباري الذكي ---
+    async function checkAppUpdate() {
+        try {
+            const currentAppVersion = "1.0"; // عدل الرقم ده لو نزلت نسخة جديدة (مثلاً 1.1)
+            const response = await fetch('version.json?t=' + new Date().getTime());
+            const data = await response.json();
+
+            if (data.version && data.version > currentAppVersion) {
+                // لو شغال في متصفح (موقع) ممكن نعمل تحديث للصفحة تلقائي
+                if (!window.navigator.standalone && !window.matchMedia('(display-mode: standalone)').matches) {
+                    // اختياري للموقع: window.location.reload();
+                }
+                
+                // إظهار شاشة التحديث الإجباري للتطبيق (APK)
+                const updateOverlay = document.getElementById("updateOverlay");
+                if (updateOverlay) {
+                    updateOverlay.classList.remove("hidden");
+                }
+                
+                // حط هنا رابط تحميل الـ APK الجديد بتاعك (موقع التحميل أو رابط مباشر)
+                const downloadBtn = document.getElementById("downloadUpdateBtn");
+                if (downloadBtn) {
+                    downloadBtn.href = "https://your-website.com/download-page.html"; 
+                }
+            }
+        } catch (error) {
+            console.log("فشل التحقق من التحديثات:", error);
+        }
+    }
+
+    // تشغيل فحص التحديث أول ما التطبيق يفتح
+    checkAppUpdate();
+
 
     // --- 🔒 طبقة الحماية القصوى ضد الـ Console والـ DevTools ---
     document.addEventListener('contextmenu', function (e) {
