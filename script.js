@@ -60,13 +60,13 @@
     let equippedBall = localStorage.getItem('samball_ball') || 'default';
     let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['default'];
 
-    // ⚡ سرعات المستويات حسب طلبك يا أنس
+    // ⚡ سرعات المستويات الموزونة لمنع التعليق
     const speeds = {
-        1: { dx: 5,   dy: -5 },   // السهل = 5
-        2: { dx: 7,   dy: -7 },   // المتوسط = 7
-        3: { dx: 10,  dy: -10 },  // الصعب = 10
-        4: { dx: 15,  dy: -15 },  // الصعب جداً = 15
-        5: { dx: 100, dy: -100 }  // المستحيل = 100
+        1: { dx: 4,   dy: -5 },   // السهل
+        2: { dx: 5,   dy: -7 },   // المتوسط
+        3: { dx: 7,   dy: -10 },  // الصعب
+        4: { dx: 9,   dy: -15 },  // الصعب جداً
+        5: { dx: 25,  dy: -100 }  // المستحيل
     };
 
     const modeNames = {
@@ -79,7 +79,7 @@
 
     let x = canvas ? canvas.width / 2 : 0;
     let y = canvas ? canvas.height - 40 : 0;
-    let dx = 5;
+    let dx = 4;
     let dy = -5;
     const ballRadius = 9;
 
@@ -334,8 +334,12 @@
         x = canvas.width / 2;
         y = canvas.height - 40;
         const baseSpeed = speeds[currentDifficulty];
-        dx = baseSpeed.dx * (Math.random() > 0.5 ? 1 : -1);
+        
+        // زاوية انطلاق مضمونة عشان ما تبدأش أفقية أو تعلّق
+        let direction = Math.random() > 0.5 ? 1 : -1;
+        dx = baseSpeed.dx * direction;
         dy = baseSpeed.dy;
+        
         paddleX = (canvas.width - paddleWidth) / 2;
         ballTrail = [];
     }
@@ -477,19 +481,33 @@
         drawPaddle();
         collisionDetection();
 
+        // ارتداء الجدران الجانبية
         if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
             dx = -dx;
         }
+        
+        // اصطدام السقف
         if (y + dy < ballRadius) {
             dy = -dy;
-        } else if (y + dy > canvas.height - ballRadius - 5) {
+        } 
+        // اصطدام القاع أو المضرب
+        else if (y + dy > canvas.height - ballRadius - 5) {
             if (x > paddleX && x < paddleX + paddleWidth) {
-                // الحفاظ على السرعة الحقيقية بعد الاصطدام بالمضرب
+                // حساب نقطة الاصطدام بالمضرب
                 let hitPoint = x - (paddleX + paddleWidth / 2);
-                let currentLevelSpeed = Math.abs(speeds[currentDifficulty].dy);
-                let speedFactor = currentLevelSpeed / 5; // ضبط نسبة الارتداد الجانبي
-                dx = hitPoint * 0.15 * speedFactor;
-                dy = -currentLevelSpeed;
+                let currentSpeed = speeds[currentDifficulty];
+                
+                // معادلة فيزياء لمنع التعليق
+                let newDx = hitPoint * 0.2 * (Math.abs(currentSpeed.dy) / 5);
+                
+                // ضمان حد أدنى للسرعة الأفقية (عشان ما تمشيش خط مستقيم رأسي وتعلّق)
+                let minDx = 2.5;
+                if (Math.abs(newDx) < minDx) {
+                    newDx = newDx >= 0 ? minDx : -minDx;
+                }
+
+                dx = newDx;
+                dy = -Math.abs(currentSpeed.dy);
             } else {
                 lives--;
                 if (livesEl) livesEl.innerText = lives;
@@ -503,7 +521,7 @@
             }
         }
 
-        let keyboardPaddleSpeed = currentDifficulty === 5 ? 3 : 10;
+        let keyboardPaddleSpeed = currentDifficulty === 5 ? 5 : 10;
 
         if (rightPressed && paddleX < canvas.width - paddleWidth) {
             paddleX += keyboardPaddleSpeed;
